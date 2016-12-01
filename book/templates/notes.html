@@ -1,0 +1,232 @@
+{%  extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Записи" %}{% endblock %}
+{% block extra_js %}<script src="{% static "js/js.cookie.js"%}"></script>{% endblock %}
+{% block content %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand">{% trans "Адресная книга" %}</a>
+    </div>
+      <button type="button" class="btn btn-default navbar-btn nav" data-toggle="modal" data-target="#createModal" data-url="{% url "note_create" %}">&nbsp;&nbsp;&nbsp;{% trans "Добавить запись" %}</button>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="{% url "note_export" %}">{% trans "Экспорт в CSV" %}</a></li>
+            <li><a href="{% url "logout" %}">{% trans "Выйти" %}</a></li>
+        </ul>
+  </div>
+</nav>
+
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "success" %}
+            <div class="alert alert-success" role="alert">
+                <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% elif message.tags == "error"%}
+            <div class="alert alert-danger" role="alert">
+                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>{% trans "Имя" %}</th>
+            <th>{% trans "Фамилия" %}</th>
+            <th>{% trans "Отчество" %}</th>
+            <th>{% trans "Адрес" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for obj in object_list %}
+        <tr data-toggle="modal" data-target="#changeModal" data-url="{% url "note" obj.pk %}" data-url-edit="{% url "note_edit" obj.pk %}" data-url-del="{% url "note_delete" obj.pk %}">
+            <td>{{ obj.name }}</td>
+            <td>{{ obj.surname }}</td>
+            <td>{{ obj.patronymic }}</td>
+            <td>{{ obj.address }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+    
+<div class="modal fade" id="createModal" tabindex="-1" role="dialog" aria-labelledby="changeModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="changeModalLabel">{% trans "Создание новой записи" %}</h4>
+      </div>
+      <div class="modal-body">
+          <div id="modalError" class="alert alert-danger hidden" role="alert">
+              <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+              {% trans "Упс, что-то пошло не так..." %}
+           </div>
+          <div id="modalContent"></div>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Закрыть" %}</button>
+          <button type="button" class="btn btn-primary" id="modalCreateButton">{% trans "Сохранить" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
+<div class="modal fade" id="changeModal" tabindex="-1" role="dialog" aria-labelledby="changeModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="changeModalLabel">{% trans "Просмотр и редактирование записи" %}</h4>
+      </div>
+      <div class="modal-body">
+          <div id="modalError" class="alert alert-danger hidden" role="alert">
+              <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+              {% trans "Упс, что-то пошло не так..." %}
+           </div>
+          <div id="modalContent"></div>
+      </div>
+      <div class="modal-footer">
+          <button type="button" class="btn btn-danger pull-left" id="modalDelButton">{% trans "Удалить" %}</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Закрыть" %}</button>
+          <button type="button" class="btn btn-primary" id="modalEditButton">{% trans "Изменить" %}</button>
+          <button type="button" class="btn btn-primary hidden" id="modalSaveButton">{% trans "Сохранить" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+    $('#changeModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var url = button.data('url');
+        var url_edit = button.data('url-edit');
+        var url_delete = button.data('url-del');
+        var modal = $(this)
+        $.get(url)
+            .done(function(data){
+                modal.find('#modalError').addClass('hidden');
+                modal.find('#modalEditButton').data('url', url_edit);
+                modal.find('#modalDelButton').data('url', url_delete);
+                var body = modal.find('#modalContent');
+                body.empty();
+                body.append(data);
+            })
+            .fail(function () {
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+    $('#createModal').on('show.bs.modal', function (event) {
+        var modal = $(this)
+        $.get("{% url "note_create" %}")
+            .done(function(data){
+                modal.find('#modalError').addClass('hidden');
+                var body = modal.find('#modalContent');
+                body.empty();
+                body.append(data);
+            })
+            .fail(function () {
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+    $('#modalEditButton').on('click', function () {
+        var modal = $('#changeModal');
+        var button = modal.find('#modalEditButton');
+        var url = button.data('url');
+        $.get(url)
+            .done(function(data){
+                var body = modal.find('#modalContent');
+                body.empty();
+                body.append(data);
+                button.addClass('hidden');
+                modal.find('#modalSaveButton').removeClass('hidden');
+            })
+            .fail(function () {
+                modal.find('#modalContent').empty();
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+    $('#modalDelButton').on('click', function () {
+        var modal = $('#changeModal');
+        var url = modal.find('#modalDelButton').data('url');
+        var form = modal.find('form');
+        $.post(url, {'csrfmiddlewaretoken': Cookies.get('csrftoken')})
+            .done(function(){
+                modal.find('#modalError').addClass('hidden');
+                modal.find('#modalEditButton').data('url', url_edit);
+                modal.find('#modalDelButton').data('url', url_delete);
+                var body = modal.find('#modalContent');
+                body.empty();
+                body.append(data);
+            })
+            .fail(function () {
+                modal.find('#modalContent').empty();
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+    $('#modalSaveButton').on('click', function () {
+        var modal = $('#changeModal');
+        var button = modal.find('#modalSaveButton');
+        var form = modal.find('form');
+        var url = form.attr('action');
+        $.post(url, form.serialize())
+            .done(function(data){
+                var body = modal.find('#modalContent');
+                body.empty();
+                body.append(data);
+                button.addClass('hidden');
+                modal.find('#modalEditButton').removeClass('hidden');
+            })
+            .fail(function () {
+                modal.find('#modalContent').empty();
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+    $('#modalCreateButton').on('click', function () {
+        var modal = $('#createModal');
+        var form = modal.find('form');
+        var url = form.attr('action');
+        $.post(url, form.serialize())
+            .done(function(data, status, response){
+                if (response.status == 201) {
+                    location.reload();
+                } else {
+                    var body = modal.find('#modalContent');
+                    body.empty();
+                    body.append(data);
+                    console.log(status);
+                }
+            })
+            .fail(function () {
+                modal.find('#modalContent').empty();
+                modal.find('#modalError').removeClass('hidden');
+            })
+    });
+
+</script>
+{% endblock %}
+{%  block extra_footer %}
+<div class="container">
+    <nav aria-label="...">
+        <ul class="pager">
+            {% if page_obj.has_previous %}
+                <li class="previous"><a href="{% url "note_list" %}?page={{ page_obj.previous_page_number }}"><span aria-hidden="true">&larr;</span>{% trans "Предыдущие" %}</a></li>
+            {% else %}
+                <li class="previous disabled"><a href="#"><span aria-hidden="true">&larr;</span>{% trans "Предыдущие" %}</a></li>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <li class="next"><a href="{% url "note_list" %}?page={{ page_obj.next_page_number }}">{% trans "Следующие" %}<span aria-hidden="true">&rarr;</span></a></li>
+            {% else %}
+                <li class="next disabled"><a href="#">{% trans "Следующие" %}<span aria-hidden="true">&rarr;</span></a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

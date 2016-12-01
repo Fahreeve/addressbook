@@ -1,0 +1,39 @@
+{%  extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Авторизация" %}{% endblock %}
+
+{% block content %}
+    <div class="page-header">
+        <h1 class="text-center">{% trans "Добро пожаловать в адресную книгу" %}</h1>
+    </div>
+    <div class="row">
+        <div class="col-md-4  col-md-offset-1">
+            <div class="panel panel-default">
+                <div class="panel-heading">{% trans "Авторизация" %}</div>
+                <div class="panel-body">
+                    <form method="post" action="{% url "login" %}">
+                        {% csrf_token %}
+                        {{ form }}
+                        <input type="hidden" name="next" value="/" />
+                        <button type="submit" class="btn btn-default">{% trans "Войти" %}</button>
+                        <a class="btn btn-default pull-right" href="{% url "registration" %}">{% trans "Регистрация" %}</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+          <h4>Почему я вижу эту страницу?</h4>
+          <p>Вероятно вы мой потенциальный работодатель</p>
+
+          <h4>Что это за сайт?</h4>
+          <p>Это пример моего кода. К сожалению, я не могу показать коды других проектов, но этот проект служит именно этой цели.</p>
+
+          <h4>Что умеет этот сайт?</h4>
+          <p><a href="{% url "about" %}">Вот полное описание функционала сайта</a></p>
+
+          <h4>Как мне попасть на следующую страницу?</h4>
+          <p>Для этой цели создан пользователь <code>user</code> с паролем <code>user</code></p>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% load verbose_name %}
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "success" %}
+            <div class="alert alert-success" role="alert">
+                <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% elif message.tags == "error"%}
+            <div class="alert alert-danger" role="alert">
+                <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "name" %}</dt>
+  <dd>{{ object.name }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "surname" %}</dt>
+  <dd>{{ object.surname }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "patronymic" %}</dt>
+  <dd>{{ object.patronymic }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "address" %}</dt>
+  <dd>{{ object.address }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "phone_number" %}</dt>
+  <dd>{{ object.phone_number }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "email" %}</dt>
+  <dd>{{ object.email }}</dd>
+</dl>
+<dl class="dl-horizontal">
+  <dt>{% get_verbose_field_name object "comment" %}</dt>
+  <dd>{{ object.comment }}</dd>
+</dl>
